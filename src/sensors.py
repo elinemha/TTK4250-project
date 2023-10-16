@@ -31,6 +31,15 @@ class SensorGNSS:
             H (ndarray[3, 15]): the measurement matrix
         """
 
+
+        # Q = 1/2 * get_cross_matrix(eta_out, ep_out)  # ???????
+
+        # X = np.vstack((np.hstack(np.eye(6), np.zeros(6,9))),
+        #              (np.hstack(np.zeros(6,6), Q, np.zeros(6,6))),
+        #              (np.hstack(np.zeros(6,9), np.eye(6))))             # ???????
+
+        # H = np.hstack((np.eye(3), np.zeros((3,12))))   # H = H_x*X
+
         # TODO remove this
         H = sensors_solu.SensorGNSS.H(self, x_nom)
         return H

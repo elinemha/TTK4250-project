@@ -42,20 +42,29 @@ class RotationQuaterion(NamedArray):
         """
         eta_a, epsilon_a = self
         eta_b, epsilon_b = other
-        eta_out = 1  # TODO
-        epout = np.zeros(3)  # TODO
 
-        # TODO remove this
-        quaternion_product = quaternion_solu.RotationQuaterion.multiply(
-            self, other)
-        return quaternion_product
+        def skew(vector):
+            skewMatrix = np.array([
+                [0, -vector[2], vector[1]],
+                [vector[2], 0, -vector[0]],
+                [-vector[1], vector[0], 0]
+            ])
+            return skewMatrix
+
+        m1 = np.vstack((
+            np.hstack((eta_a, -epsilon_a.T)),
+            np.hstack((epsilon_a.reshape((3, 1)), eta_a*np.eye(3) + skew(epsilon_a)))
+        ))
+        m2 = np.hstack((eta_b, epsilon_b))
+        q = m1@m2
+        eta_out = q[0]
+        epout = q[1:]
+
+        return RotationQuaterion(eta_out, epout)
 
     def conjugate(self) -> 'RotationQuaterion':
         """Get the conjugate of the RotationQuaternion"""
-
-        # TODO remove this
-        conj = quaternion_solu.RotationQuaterion.conjugate(self)
-        return conj
+        return RotationQuaterion(self.eta, -self.epsilon)
 
     def diff(self, other: 'RotationQuaterion') -> 'RotationQuaterion':
         """Get the difference between two quaternions3

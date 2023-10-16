@@ -14,7 +14,7 @@ from solution import models as models_solu
 
 @dataclass
 class ModelIMU:
-    """The IMU is considered a dynamic model instead of a sensar. 
+    """The IMU is considered a dynamic model instead of a sensor. 
     This works as an IMU measures the change between two states, 
     and not the state itself.."""
 
@@ -50,7 +50,7 @@ class ModelIMU:
                       x_est_nom: NominalState,
                       z_imu: ImuMeasurement,
                       ) -> CorrectedImuMeasurement:
-        """Correct IMU measurement so it gives a measurmenet of acceleration 
+        """Correct IMU measurement so it gives a measurement of acceleration 
         and angular velocity in body.
 
         Hint: self.accm_correction and self.gyro_correction translates 
@@ -63,11 +63,14 @@ class ModelIMU:
         Returns:
             z_corr: corrected IMU measurement
         """
-        acc_est = np.zeros(3)
-        avel_est = np.zeros(3)
+        acc_est = self.accm_correction@(z_imu.acc - x_est_nom.accm_bias)
+        avel_est = self.gyro_correction@(z_imu.avel - x_est_nom.gyro_bias)
 
+        z_corr1 = CorrectedImuMeasurement(acc_est, avel_est)
+        
         # TODO remove this
         z_corr = models_solu.ModelIMU.correct_z_imu(self, x_est_nom, z_imu)
+        # print(z_corr - z_corr1)
         return z_corr
 
     def predict_nom(self,
@@ -112,7 +115,7 @@ class ModelIMU:
         Hint: The S matrices can be created using get_cross_matrix. In the book
         a perfect IMU is expected (thus many I matrices). Here we have 
         to use the correction matrices, self.accm_correction and 
-        self.gyro_correction, instead of som of the I matrices.  
+        self.gyro_correction, instead of some of the I matrices.  
 
         You can use block_3x3 to simplify indexing if you want to.
         ex: first I element in A can be set as A[block_3x3(0, 1)] = np.eye(3)
@@ -127,6 +130,14 @@ class ModelIMU:
         Rq = x_est_nom.ori.as_rotmat()
         S_acc = get_cross_matrix(z_corr.acc)
         S_omega = get_cross_matrix(z_corr.avel)
+
+        A_c[block_3x3(0, 1)] = np.eye(3)
+        A_c[block_3x3(1, 2)] = -Rq@S_acc
+        A_c[block_3x3(1, 3)] = -Rq
+        A_c[block_3x3(2, 2)] = -S_omega
+        A_c[block_3x3(2, 4)] = -np.eye(3)
+        A_c[block_3x3(3, 3)] = -self.accm_bias_p*np.eye(3)
+        A_c[block_3x3(4, 4)] = -self.gyro_bias_p*np.eye(3)
 
         # TODO remove this
         A_c = models_solu.ModelIMU.A_c(self, x_est_nom, z_corr)
