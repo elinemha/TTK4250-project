@@ -103,6 +103,7 @@ def main():
 
     doAsso = True
 
+    # Original [0.001, 0.0001]
     JCBBalphas = np.array(
         [0.001, 0.0001] # TODO tune
     )  # first is for joint compatibility, second is individual
@@ -125,15 +126,15 @@ def main():
     alpha = 0.05
     confidence_prob = 1 - alpha
     # init
-    eta_pred[0] = poseGT[0]  # we start at the correct position for reference
+    eta_pred[0] = poseGT[0]  # we start at the correct position for reference # TODO tune
     # we also say that we are 100% sure about that
-    P_pred[0] = np.zeros((3, 3))
+    P_pred[0] = np.zeros((3, 3)) # TODO tun
 
     # %% Set up plotting
     # plotting
 
     doAssoPlot = False
-    playMovie = True
+    playMovie = False
     if doAssoPlot:
         figAsso, axAsso = plt.subplots(num=1, clear=True)
 
